@@ -22,6 +22,10 @@ print 'Total number of days in the dataset: {}'.format(len(closing_prices))
 scaler = StandardScaler()
 scaled_closing_prices = scaler.fit_transform(closing_prices)
 
+"""
+Split the dataset into non-overlapping windows (currently window_size=1).
+Form all the inputs of size num_steps (number of windows that make up one input)
+"""
 def split_into_windows(data, num_steps):
     X, Y = [], []
 
@@ -30,14 +34,18 @@ def split_into_windows(data, num_steps):
         Y.append(data[i+num_steps])
     return np.array(X), np.array(Y)
 
-# Split the dataset into train/test
+"""
+Split the dataset into train/test
+"""
 def train_test_split(X, Y, batch_size, test_ratio):
     num_train = (int(len(X) * (1.0-test_ratio)) // batch_size)*batch_size
     train_X, test_X = X[:num_train], X[num_train:]
     train_Y, test_Y = Y[:num_train], Y[num_train:]
     return train_X, train_Y, test_X, test_Y
 
-# Preprocess the data
+"""
+Preprocess the data
+"""
 def preprocess_data(data, num_steps, batch_size, test_ratio=0.1):
     X, Y = split_into_windows(data, num_steps)
     return train_test_split(X, Y, batch_size, test_ratio)
@@ -48,8 +56,9 @@ print "y_train size: {}".format(train_Y.shape)
 print "X_test size: {}".format(test_X.shape)
 print "y_test size: {}".format(test_Y.shape)
 
-# Create the RNN-LSTM
-
+"""
+Create the LSTMcells for RNN
+"""
 def createLSTMCell(layer_size, batch_size, num_layers, keep_prob):
     layer = tf.contrib.rnn.BasicLSTMCell(layer_size)
 
@@ -61,17 +70,26 @@ def createLSTMCell(layer_size, batch_size, num_layers, keep_prob):
 
     return cell, init
 
+"""
+Computes the prediction
+"""
 def outputLayer(output, input_size, output_size):
     a = output[:,-1,:]
     W = tf.Variable(tf.truncated_normal([input_size, output_size], stddev=0.05), name='output_weights')
     b = tf.Variable(tf.zeros([output_size]), name='output_bias')
     return tf.matmul(a, W) + b
 
+"""
+Minimizes the Loss
+"""
 def minimizeLoss(predictions, targets, learning_rate):
-    loss = tf.reduce_mean(tf.square(predictions-targets), name='cost')
+    loss = tf.sqrt(tf.reduce_mean(tf.square(predictions-targets)), name='loss')
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
     return loss, optimizer
 
+"""
+The actual stock predictor, everything put together
+"""
 class LSTMStockPrediction():
     def __init__(self, learning_rate=0.001, batch_size=7, layer_size=512, num_layers=1, keep_prob=0.9, num_steps=10):
         self.inputs = tf.placeholder(tf.float32, [batch_size, num_steps, 1], name='input')
@@ -89,6 +107,7 @@ model = LSTMStockPrediction()
 session = tf.Session()
 session.run(tf.global_variables_initializer())
 
+# Training
 for i in range(epochs):
     predictions, epoch_loss = [], []
     num_batches = int(len(train_X) // batch_size)
@@ -114,12 +133,13 @@ for i in range(epochs):
     if (i % 5) == 0:
         print('Epoch {}/{}'.format(i, epochs), ' Current loss: {}'.format(np.mean(epoch_loss)))
 
-
+# Store the predictions for graphing purposes
 training_results = []
 for i in range(len(predictions)):
     for j in range(len(predictions[i])):
         training_results.append(predictions[i][j])
 
+# Run on test set
 test = []
 num_batches = int(len(test_X) // batch_size)
 if batch_size * num_batches < len(test_X):
@@ -136,11 +156,13 @@ for i in batch_indices:
     o = session.run([model.predictions], feed_dict={model.inputs:batch_X})
     test.append(o)
 
+# Store the test predictions for graphing purposes
 test_new = []
 for i in range(len(test)):
     for j in range(len(test[i][0])):
         test_new.append(test[i][0][j])
 
+# Reorganize for graphing purposes (test predictions in diff color from train predictions)
 test_results = []
 for i in range(len(train_X)+len(test_X)):
     if i >= len(train_X)+1:
@@ -148,6 +170,7 @@ for i in range(len(train_X)+len(test_X)):
     else:
         test_results.append(None)
 
+# Graphing the predictions against the ground truths
 plt.figure(figsize=(16, 7))
 plt.plot(scaled_closing_prices, label='Original data')
 plt.plot(training_results, label='Training data')
