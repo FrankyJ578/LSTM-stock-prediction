@@ -11,4 +11,5 @@ the terminal (make sure to mkdir data/ folder in the current working directory f
 to store the .csv files).
 
 To run the model, run 'python lstm-stock-prediction.py' in terminal. (hard-coded to
-run on AAPL.csv, so make sure to have that in data/ folder before running)
+run on AAPL.csv, so make sure to run data_fetcher.py first to have last 4000 days
+of AAPL)
