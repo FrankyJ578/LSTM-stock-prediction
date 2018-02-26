@@ -10,27 +10,17 @@ from sklearn.preprocessing import StandardScaler
 DATA_DIR = 'data'
 
 # Load the Dataset (currently just the prices of SP500)
-epochs = 50
-num_steps = 30
-batch_size = 64
+epochs = 200
+num_steps = 10
+batch_size = 7
 path_to_data = os.path.join(DATA_DIR, 'AAPL.csv')
 raw_data = pd.read_csv(path_to_data)
 closing_prices = raw_data['Close'].values.reshape(-1, 1)
-print 'Total number of days in the dataset: {}'.format(len(closing_prices))
-closing_prices = closing_prices[:int(len(closing_prices)/batch_size)*batch_size + num_steps]
 print 'Total number of days in the dataset: {}'.format(len(closing_prices))
 
 # Scale the dataset so that it has mean 0, variance 1
 scaler = StandardScaler()
 scaled_closing_prices = scaler.fit_transform(closing_prices)
-
-# plt.figure(figsize=(12,7), frameon=False, facecolor='brown', edgecolor='blue')
-# plt.title('Scaled SP500 stocks from August 2014 to August 2017')
-# plt.xlabel('Days')
-# plt.ylabel('Scaled value of stocks')
-# plt.plot(scaled_closing_prices, label='Stocks data')
-# plt.legend()
-# plt.show()
 
 def split_into_windows(data, num_steps):
     X, Y = [], []
@@ -83,7 +73,7 @@ def minimizeLoss(predictions, targets, learning_rate):
     return loss, optimizer
 
 class LSTMStockPrediction():
-    def __init__(self, learning_rate=0.0005, batch_size=64, layer_size=128, num_layers=1, keep_prob=0.9, num_steps=30):
+    def __init__(self, learning_rate=0.001, batch_size=7, layer_size=512, num_layers=1, keep_prob=0.9, num_steps=10):
         self.inputs = tf.placeholder(tf.float32, [batch_size, num_steps, 1], name='input')
         self.targets = tf.placeholder(tf.float32, [batch_size, 1], name='target')
 
@@ -100,7 +90,7 @@ session = tf.Session()
 session.run(tf.global_variables_initializer())
 
 for i in range(epochs):
-    trained_scores, epoch_loss = [], []
+    predictions, epoch_loss = [], []
     num_batches = int(len(train_X) // batch_size)
     if batch_size * num_batches < len(train_X):
         num_batches += 1
@@ -119,19 +109,18 @@ for i in range(epochs):
         o, c, _ = session.run([model.predictions, model.loss, model.optimizer], feed_dict={model.inputs:batch_X, model.targets:batch_Y})
 
         epoch_loss.append(c)
-        trained_scores.append(o)
+        predictions.append(o)
     # trained_scores.append(predictions)
     if (i % 5) == 0:
         print('Epoch {}/{}'.format(i, epochs), ' Current loss: {}'.format(np.mean(epoch_loss)))
 
 
-sup = []
-for i in range(len(trained_scores)):
-    for j in range(len(trained_scores[i])):
-        sup.append(trained_scores[i][j])
-print len(sup)
+training_results = []
+for i in range(len(predictions)):
+    for j in range(len(predictions[i])):
+        training_results.append(predictions[i][j])
 
-tests = []
+test = []
 num_batches = int(len(test_X) // batch_size)
 if batch_size * num_batches < len(test_X):
     num_batches += 1
@@ -145,27 +134,23 @@ for i in batch_indices:
         batch_X = test_X[i*batch_size:(i+1)*batch_size]
 
     o = session.run([model.predictions], feed_dict={model.inputs:batch_X})
-    tests.append(o)
-print len(tests)
-print len(tests[0])
-print len(tests[0][0])
+    test.append(o)
 
-tests_new = []
-for i in range(len(tests)):
-    for j in range(len(tests[i][0])):
-        tests_new.append(tests[i][0][j])
-print len(tests_new)
+test_new = []
+for i in range(len(test)):
+    for j in range(len(test[i][0])):
+        test_new.append(test[i][0][j])
 
 test_results = []
 for i in range(len(train_X)+len(test_X)):
     if i >= len(train_X)+1:
-        test_results.append(tests_new[i-(len(train_X)+1)])
+        test_results.append(test_new[i-(len(train_X)+1)])
     else:
         test_results.append(None)
 
 plt.figure(figsize=(16, 7))
 plt.plot(scaled_closing_prices, label='Original data')
-plt.plot(sup, label='Training data')
+plt.plot(training_results, label='Training data')
 plt.plot(test_results, label='Testing data')
 plt.legend()
 plt.show()
