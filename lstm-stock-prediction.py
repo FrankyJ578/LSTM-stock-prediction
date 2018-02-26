@@ -16,7 +16,6 @@ batch_size = 7
 path_to_data = os.path.join(DATA_DIR, 'AAPL.csv')
 raw_data = pd.read_csv(path_to_data)
 closing_prices = raw_data['Close'].values.reshape(-1, 1)
-print 'Total number of days in the dataset: {}'.format(len(closing_prices))
 
 # Scale the dataset so that it has mean 0, variance 1
 scaler = StandardScaler()
@@ -51,10 +50,6 @@ def preprocess_data(data, num_steps, batch_size, test_ratio=0.1):
     return train_test_split(X, Y, batch_size, test_ratio)
 
 train_X, train_Y, test_X, test_Y = preprocess_data(scaled_closing_prices, num_steps, batch_size)
-print "X_train size: {}".format(train_X.shape)
-print "y_train size: {}".format(train_Y.shape)
-print "X_test size: {}".format(test_X.shape)
-print "y_test size: {}".format(test_Y.shape)
 
 """
 Create the LSTMcells for RNN
