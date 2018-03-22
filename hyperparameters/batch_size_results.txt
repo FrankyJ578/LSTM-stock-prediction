@@ -1,0 +1,6 @@
+Constant Hyperparameters: num_epochs=70, timestep=50, cell_state_size=20, num_layers=1 
+Batch_size	RMSE
+64	15.7527662384
+128	18.337163681
+256	17.4127353874
+512	19.8009611781

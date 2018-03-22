@@ -1,0 +1,4 @@
+AAPL-closing.csv
+*.pyc
+*.sh
+lstm-stock-prediction.py
