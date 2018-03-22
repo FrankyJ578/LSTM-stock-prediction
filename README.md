@@ -1,4 +1,4 @@
-Make sure to have tensorflow, pandas, numpy, matplotlib, and sklearn installed.
+Make sure to have keras, tensorflow, pandas, numpy, matplotlib, and sklearn installed.
 
 In addition, to use the data_fetcher, make sure you have click, urllib3,
 and BeautifulSoup installed as well.
