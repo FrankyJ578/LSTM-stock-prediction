@@ -1,15 +1,22 @@
 Make sure to have keras, tensorflow, pandas, numpy, matplotlib, and sklearn installed.
 
-In addition, to use the data_fetcher, make sure you have click, urllib3,
-and BeautifulSoup installed as well.
-
 To get data on S&P500, go to https://finance.yahoo.com/quote/%5EGSPC/history?p=%5EGSPC,
 select the maximum date range, and download the .csv file.
 
-To get data for each individual stock in S&P500, run 'python data_fetcher.py' in
-the terminal (make sure to mkdir data/ folder in the current working directory first
-to store the .csv files).
+To run the model, run 'python run_lstm_prediction.py' in terminal.
+	- uncomment the line for the corresponding prediction that you wish to run
 
-To run the model, run 'python lstm-stock-prediction.py' in terminal. (hard-coded to
-run on AAPL.csv, so make sure to run data_fetcher.py first to have last 4000 days
-of AAPL)
+To run the hyperparameter search, run 'python hyperparameter_tuning.py'
+	- comment out the lines that aren't the hyperparameter that you wish to tune.
+
+The built LSTM models are located in 'build_lstm.py'
+
+The values picked from hyperparameter tuning are in 'chosen_hyperparameters.py'
+
+Lots of data files are in /data
+
+Method for running training and prediction resides in 'keras_impl_lstm.py'
+
+Methods for plotting the graphs of predictions resides in 'plotting_methods.py'
+
+Methods for preprocessing data reside in 'preprocess_data.py'
